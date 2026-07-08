@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,3 +16,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Inicializa o Analytics apenas se for suportado pelo ambiente/navegador
+export let analytics: any = null;
+isSupported().then((supported) => {
+  if (supported && firebaseConfig.measurementId) {
+    analytics = getAnalytics(app);
+  }
+});
