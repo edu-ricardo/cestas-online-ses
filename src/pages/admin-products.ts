@@ -17,6 +17,7 @@ export class AdminProducts extends LitElement {
   @state() private categoryId = '';
   @state() private isActive = true;
   @state() private images: ProductImage[] = [{ url: '', alt: '' }];
+  @state() private editingProductId: string | null = null;
 
   static styles = css`
     :host { 
@@ -231,17 +232,28 @@ export class AdminProducts extends LitElement {
     }
     .btn-action {
       flex: 1;
-      padding: 0.6rem;
+      padding: 0.5rem;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background: var(--bg-main);
       color: var(--text-primary);
       cursor: pointer;
       font-weight: 600;
+      font-size: 0.85rem;
       transition: all 0.2s;
     }
     .btn-action:hover {
       background: var(--border-color);
+    }
+    .btn-edit {
+      color: #3b82f6;
+      border-color: rgba(59, 130, 246, 0.3);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .btn-edit:hover {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
     }
     .btn-delete { 
       color: var(--danger-color); 
@@ -309,22 +321,27 @@ export class AdminProducts extends LitElement {
     // Filtra apenas imagens que tem pelo menos a URL preenchida
     const validImages = this.images.filter(img => img.url.trim() !== '');
     
-    const product: Omit<Product, 'id'> = {
+    const productData: Partial<Product> = {
       title: this.productTitle,
       description: this.productDescription,
       price: Number(this.price),
       categoryId: this.categoryId,
       images: validImages,
       isActive: this.isActive,
-      createdAt: Date.now()
     };
 
     // Para compatibilidade, setar imageUrl com a primeira imagem caso exista
     if (validImages.length > 0) {
-      product.imageUrl = validImages[0].url;
+      productData.imageUrl = validImages[0].url;
     }
 
-    await ProductService.create(product);
+    if (this.editingProductId) {
+      await ProductService.update(this.editingProductId, productData);
+    } else {
+      (productData as Product).createdAt = Date.now();
+      await ProductService.create(productData as Omit<Product, 'id'>);
+    }
+
     this.resetForm();
     await this.loadProducts();
   }
@@ -336,7 +353,28 @@ export class AdminProducts extends LitElement {
     this.categoryId = '';
     this.images = [{ url: '', alt: '' }];
     this.isActive = true;
+    this.editingProductId = null;
     this.showForm = false;
+  }
+
+  editProduct(product: Product) {
+    this.editingProductId = product.id!;
+    this.productTitle = product.title;
+    this.productDescription = product.description;
+    this.price = product.price;
+    this.categoryId = product.categoryId;
+    this.isActive = product.isActive;
+    
+    if (product.images && product.images.length > 0) {
+      this.images = [...product.images];
+    } else if (product.imageUrl) {
+      this.images = [{ url: product.imageUrl, alt: product.title }];
+    } else {
+      this.images = [{ url: '', alt: '' }];
+    }
+    
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async handleDelete(id: string) {
@@ -360,14 +398,14 @@ export class AdminProducts extends LitElement {
       
       <div class="header">
         <h2>Gerenciar Produtos</h2>
-        <button class="btn-add" @click=${() => this.showForm = !this.showForm}>
+        <button class="btn-add" @click=${() => { this.resetForm(); this.showForm = !this.showForm; }}>
           ${this.showForm ? 'Cancelar' : '+ Novo Produto'}
         </button>
       </div>
 
       ${this.showForm ? html`
         <div class="form-container">
-          <h3>Cadastrar Novo Produto</h3>
+          <h3>${this.editingProductId ? 'Editar Produto' : 'Cadastrar Novo Produto'}</h3>
           <form class="form" @submit=${this.handleSubmit}>
             <div class="input-group">
               <label>Título do Produto</label>
@@ -429,7 +467,7 @@ export class AdminProducts extends LitElement {
               </label>
             </div>
             <div class="input-group full-width" style="margin-top: 1rem;">
-              <button type="submit" class="btn-add">Salvar Produto</button>
+              <button type="submit" class="btn-add">${this.editingProductId ? 'Atualizar Produto' : 'Salvar Produto'}</button>
             </div>
           </form>
         </div>
@@ -452,6 +490,7 @@ export class AdminProducts extends LitElement {
                     ${p.isActive ? 'Em Estoque (Ativo)' : 'Inativo'}
                   </div>
                   <div class="actions">
+                    <button class="btn-action btn-edit" @click=${() => this.editProduct(p)}>Editar</button>
                     <button class="btn-action" @click=${() => this.toggleActive(p)}>${p.isActive ? 'Inativar' : 'Ativar'}</button>
                     <button class="btn-action btn-delete" @click=${() => this.handleDelete(p.id!)}>Excluir</button>
                   </div>
