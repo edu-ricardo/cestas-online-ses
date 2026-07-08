@@ -421,9 +421,9 @@ export class AdminProducts extends LitElement {
             </div>
             <div class="input-group full-width">
               <label>Categoria</label>
-              <select @change=${(e: any) => this.categoryId = e.target.value} required>
+              <select .value=${this.categoryId} @change=${(e: any) => this.categoryId = e.target.value} required>
                 <option value="">Selecione uma Categoria...</option>
-                ${this.categories.map(cat => html`<option value=${cat.id!}>${cat.name}</option>`)}
+                ${this.categories.map(cat => html`<option value=${cat.id!} ?selected=${cat.id === this.categoryId}>${cat.name}</option>`)}
               </select>
             </div>
             
