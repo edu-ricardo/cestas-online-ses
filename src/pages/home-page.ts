@@ -23,11 +23,17 @@ export class HomePage extends LitElement {
     header {
       padding: 1rem;
       text-align: center;
-      background: #fdfdfd;
-      border-bottom: 1px solid #eee;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
       position: sticky;
       top: 0;
       z-index: 10;
+      transition: background-color 0.3s ease;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--text-primary);
     }
 
     .search-bar {
@@ -38,10 +44,17 @@ export class HomePage extends LitElement {
 
     .search-bar input {
       flex: 1;
-      padding: 0.8rem;
-      border: 1px solid #ddd;
+      padding: 0.8rem 1.2rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      color: var(--text-primary);
       border-radius: 25px;
       outline: none;
+      transition: border-color 0.2s, background-color 0.3s ease;
+    }
+
+    .search-bar input:focus {
+      border-color: var(--primary-color);
     }
 
     .categories-scroll {
@@ -55,36 +68,51 @@ export class HomePage extends LitElement {
 
     .category-chip {
       white-space: nowrap;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.2rem;
       border-radius: 20px;
-      background: #f0f0f0;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
       cursor: pointer;
       font-size: 0.9rem;
-      border: 1px solid transparent;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .category-chip:hover {
+      background: var(--border-color);
     }
 
     .category-chip.active {
-      background: #007bff;
+      background: var(--primary-color);
       color: white;
+      border-color: var(--primary-color);
     }
 
     .products-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 1rem;
+      gap: 1.5rem;
       padding: 1rem;
     }
 
     .product-card {
-      border: 1px solid #eee;
-      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      background: white;
-      transition: transform 0.2s;
+      background: var(--bg-surface);
+      transition: transform 0.2s, box-shadow 0.2s;
       text-decoration: none;
       color: inherit;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-color);
     }
 
     .product-card:active {
@@ -95,17 +123,19 @@ export class HomePage extends LitElement {
       width: 100%;
       aspect-ratio: 1;
       object-fit: cover;
-      background: #f9f9f9;
+      background: var(--bg-main);
+      border-bottom: 1px solid var(--border-color);
     }
 
     .product-info {
-      padding: 0.8rem;
+      padding: 1rem;
     }
 
     .product-title {
-      font-weight: bold;
-      font-size: 1rem;
+      font-weight: 600;
+      font-size: 1.1rem;
       margin: 0;
+      color: var(--text-primary);
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -113,19 +143,26 @@ export class HomePage extends LitElement {
     }
 
     .product-price {
-      color: #28a745;
-      font-weight: bold;
-      margin-top: 0.4rem;
+      color: var(--primary-color);
+      font-weight: 700;
+      margin-top: 0.5rem;
       display: block;
+      font-size: 1.1rem;
     }
 
     .admin-link {
-      display: block;
+      display: inline-block;
+      width: 100%;
       text-align: center;
-      margin-top: 2rem;
-      color: #999;
-      font-size: 0.8rem;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
       text-decoration: none;
+      transition: color 0.2s;
+    }
+    
+    .admin-link:hover {
+      color: var(--primary-color);
     }
 
     @media (min-width: 600px) {
@@ -203,7 +240,7 @@ export class HomePage extends LitElement {
         `)}
       </div>
 
-      ${this.loading ? html`<p style="text-align: center; padding: 2rem;">Carregando catálogo...</p>` : html`
+      ${this.loading ? html`<p style="text-align: center; padding: 2rem; color: var(--text-secondary);">Carregando catálogo...</p>` : html`
         <div class="products-grid">
           ${this.filteredProducts.map(p => html`
             <a href="/produto/${p.id}" class="product-card">
@@ -215,7 +252,7 @@ export class HomePage extends LitElement {
             </a>
           `)}
         </div>
-        ${this.filteredProducts.length === 0 ? html`<p style="text-align: center; color: #999;">Nenhum produto encontrado.</p>` : ''}
+        ${this.filteredProducts.length === 0 ? html`<p style="text-align: center; color: var(--text-muted);">Nenhum produto encontrado.</p>` : ''}
       `}
 
       <a href="/admin" class="admin-link">Acesso Administrativo</a>
