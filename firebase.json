@@ -26,6 +26,10 @@
     ],
     "rewrites": [
       {
+        "source": "/produto/**",
+        "function": "renderProductSEO"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

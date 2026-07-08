@@ -7,9 +7,13 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import { setGlobalOptions } from "firebase-functions";
-import { onRequest } from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
+import { setGlobalOptions } from "firebase-functions/v2";
+import { onRequest } from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
+import * as fs from "fs";
+import * as path from "path";
+
+admin.initializeApp();
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -26,7 +30,43 @@ import * as logger from "firebase-functions/logger";
 // this will be the maximum concurrent request count.
 setGlobalOptions({ maxInstances: 5 });
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export const renderProductSEO = onRequest(async (request, response) => {
+  try {
+    // Pega o ID da URL (ex: /produto/12345 -> 12345)
+    const parts = request.path.split('/').filter(Boolean);
+    const productId = parts[parts.length - 1];
+
+    // Carrega o HTML base do SPA
+    let html = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+
+    if (productId && productId !== 'produto') {
+      const docSnap = await admin.firestore().collection('products').doc(productId).get();
+      if (docSnap.exists) {
+        const product = docSnap.data();
+        const title = product?.title || 'Sabor & Sonhos';
+        const description = product?.description || 'As melhores cestas para presentear.';
+        const image = product?.images?.[0]?.url || product?.imageUrl || '';
+        const currentUrl = `https://${request.hostname}${request.path}`;
+
+        // Injeta as informações do produto nas meta tags falsas
+        html = html
+          .replace(/__SEO_TITLE__/g, `${title} - Sabor & Sonhos`)
+          .replace(/__SEO_DESCRIPTION__/g, description)
+          .replace(/__SEO_IMAGE__/g, image)
+          .replace(/__SEO_URL__/g, currentUrl);
+      }
+    }
+
+    // Cache no CDN (Hosting) por 10 minutos
+    response.set('Cache-Control', 'public, max-age=300, s-maxage=600');
+    response.status(200).send(html);
+  } catch (error) {
+    console.error("Erro renderProductSEO:", error);
+    try {
+      const fallbackHtml = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf8');
+      response.status(200).send(fallbackHtml);
+    } catch(e) {
+      response.status(500).send("Erro interno");
+    }
+  }
+});
