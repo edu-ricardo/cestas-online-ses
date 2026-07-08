@@ -2,7 +2,8 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ProductService } from '../services/data-service';
 import { SettingsService } from '../services/settings-service';
-import type { Product } from '../services/data-service';
+import type { Product, ProductImage } from '../services/data-service';
+import '../components/image-carousel';
 
 @customElement('product-details')
 export class ProductDetails extends LitElement {
@@ -16,28 +17,33 @@ export class ProductDetails extends LitElement {
       display: block;
       max-width: 600px;
       margin: 0 auto;
-      font-family: sans-serif;
       line-height: 1.6;
+      background: var(--bg-main);
+      min-height: 100vh;
     }
 
     .back-btn {
-      display: inline-block;
-      padding: 1rem;
-      color: #007bff;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1.5rem;
+      color: var(--primary-color);
       text-decoration: none;
-      font-size: 0.9rem;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    .back-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
     }
 
     .image-container {
       width: 100%;
       aspect-ratio: 1;
-      background: #f9f9f9;
-    }
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      border-top: 1px solid var(--border-color);
     }
 
     .content {
@@ -45,22 +51,26 @@ export class ProductDetails extends LitElement {
     }
 
     .title {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       margin: 0;
+      color: var(--text-primary);
+      font-weight: 700;
+      line-height: 1.2;
     }
 
     .price {
-      font-size: 1.3rem;
-      color: #28a745;
+      font-size: 1.5rem;
+      color: var(--primary-color);
       font-weight: bold;
-      margin: 0.5rem 0;
+      margin: 1rem 0;
       display: block;
     }
 
     .description {
-      color: #555;
+      color: var(--text-secondary);
       margin-top: 1rem;
       white-space: pre-wrap;
+      font-size: 1.05rem;
     }
 
     .footer-action {
@@ -69,15 +79,16 @@ export class ProductDetails extends LitElement {
       left: 0;
       right: 0;
       padding: 1rem;
-      background: white;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      background: var(--bg-surface);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
       display: flex;
       justify-content: center;
       z-index: 100;
+      border-top: 1px solid var(--border-color);
     }
 
     .buy-btn {
-      background: #25d366;
+      background: var(--success-color);
       color: white;
       text-decoration: none;
       padding: 1rem 2rem;
@@ -89,11 +100,16 @@ export class ProductDetails extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
+      transition: transform 0.2s;
     }
 
+    .buy-btn:hover {
+      transform: translateY(-2px);
+    }
+    
     .buy-btn:active {
-      background: #128c7e;
+      transform: scale(0.98);
     }
   `;
 
@@ -117,28 +133,35 @@ export class ProductDetails extends LitElement {
   handleBuy() {
     if (!this.product || !this.whatsappNumber) return;
 
-    const message = `Olá! Gostaria de encomendar o produto: *${this.product.title}* no valor de *R$ ${this.product.price.toFixed(2)}*.`;
+    const message = \`Olá! Gostaria de encomendar o produto: *\${this.product.title}* no valor de *R$ \${this.product.price.toFixed(2)}*.\`;
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${this.whatsappNumber}?text=${encodedMessage}`;
+    const whatsappUrl = \`https://wa.me/\${this.whatsappNumber}?text=\${encodedMessage}\`;
     
     window.open(whatsappUrl, '_blank');
   }
 
   render() {
-    if (this.loading) return html`<p style="text-align: center; padding: 3rem;">Carregando detalhes...</p>`;
-    if (!this.product) return html`<p style="text-align: center; padding: 3rem;">Produto não encontrado.</p>`;
+    if (this.loading) return html\`<p style="text-align: center; padding: 3rem; color: var(--text-secondary);">Carregando detalhes...</p>\`;
+    if (!this.product) return html\`<p style="text-align: center; padding: 3rem; color: var(--text-secondary);">Produto não encontrado.</p>\`;
 
-    return html`
-      <a href="/" class="back-btn">← Voltar para o catálogo</a>
+    const productImages: ProductImage[] = this.product.images && this.product.images.length > 0 
+      ? this.product.images 
+      : (this.product.imageUrl ? [{ url: this.product.imageUrl, alt: this.product.title }] : []);
+
+    return html\`
+      <a href="/" class="back-btn">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Voltar para o catálogo
+      </a>
       
       <div class="image-container">
-        <img src=${this.product.imageUrl} alt=${this.product.title}>
+        <image-carousel .images=\${productImages}></image-carousel>
       </div>
 
       <div class="content">
-        <h1 class="title">${this.product.title}</h1>
-        <span class="price">R$ ${this.product.price.toFixed(2)}</span>
-        <div class="description">${this.product.description}</div>
+        <h1 class="title">\${this.product.title}</h1>
+        <span class="price">R$ \${this.product.price.toFixed(2)}</span>
+        <div class="description">\${this.product.description}</div>
       </div>
 
       <div class="footer-action">

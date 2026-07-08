@@ -1,7 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { ProductService, CategoryService } from '../services/data-service';
-import type { Product, Category } from '../services/data-service';
+import type { Product, Category, ProductImage } from '../services/data-service';
+import '../components/image-carousel';
 
 @customElement('home-page')
 export class HomePage extends LitElement {
@@ -242,15 +243,21 @@ export class HomePage extends LitElement {
 
       ${this.loading ? html`<p style="text-align: center; padding: 2rem; color: var(--text-secondary);">Carregando catálogo...</p>` : html`
         <div class="products-grid">
-          ${this.filteredProducts.map(p => html`
-            <a href="/produto/${p.id}" class="product-card">
-              <img class="product-image" src=${p.imageUrl} alt=${p.title}>
-              <div class="product-info">
-                <p class="product-title">${p.title}</p>
-                <span class="product-price">R$ ${p.price.toFixed(2)}</span>
-              </div>
-            </a>
-          `)}
+          ${this.filteredProducts.map(p => {
+            const productImages: ProductImage[] = p.images && p.images.length > 0 ? p.images : (p.imageUrl ? [{ url: p.imageUrl, alt: p.title }] : []);
+            
+            return html`
+              <a href="/produto/${p.id}" class="product-card">
+                <div class="product-image">
+                  <image-carousel .images=${productImages}></image-carousel>
+                </div>
+                <div class="product-info">
+                  <p class="product-title">${p.title}</p>
+                  <span class="product-price">R$ ${p.price.toFixed(2)}</span>
+                </div>
+              </a>
+            `;
+          })}
         </div>
         ${this.filteredProducts.length === 0 ? html`<p style="text-align: center; color: var(--text-muted);">Nenhum produto encontrado.</p>` : ''}
       `}

@@ -40,13 +40,19 @@ export const CategoryService = {
   }
 };
 
+export interface ProductImage {
+  url: string;
+  alt: string;
+}
+
 export interface Product {
   id?: string;
   title: string;
   description: string;
   price: number;
   categoryId: string;
-  imageUrl: string;
+  imageUrl?: string; // Mantido para compatibilidade com registros antigos
+  images?: ProductImage[]; // Nova propriedade para múltiplas imagens
   isActive: boolean;
   createdAt: number;
 }
