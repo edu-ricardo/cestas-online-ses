@@ -8,6 +8,8 @@ export class AdminCategories extends LitElement {
   @state() private categories: Category[] = [];
   @state() private newCategoryName = '';
   @state() private loading = true;
+  @state() private draggedIndex: number | null = null;
+  @state() private isSavingOrder = false;
 
   static styles = css`
     :host { 
@@ -93,10 +95,26 @@ export class AdminCategories extends LitElement {
       padding: 1.25rem 1.5rem; 
       box-shadow: var(--shadow-sm);
       transition: transform 0.2s;
+      cursor: grab;
     }
-    .category-item:hover {
-      transform: translateX(4px);
+    .category-item:active {
+      cursor: grabbing;
+    }
+    .category-item.dragging {
+      opacity: 0.5;
+      box-shadow: var(--shadow-md);
       border-color: var(--primary-color);
+    }
+    .category-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .drag-handle {
+      color: var(--text-muted);
+      cursor: grab;
+      display: flex;
+      align-items: center;
     }
     .category-item span {
       font-weight: 500;
@@ -162,6 +180,43 @@ export class AdminCategories extends LitElement {
     }
   }
 
+  dragStart(e: DragEvent, index: number) {
+    this.draggedIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      // Permite visualização correta no Firefox e outros browsers
+      e.dataTransfer.setData('text/plain', index.toString());
+    }
+  }
+
+  dragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (this.draggedIndex === null || this.draggedIndex === index) return;
+    
+    const newCategories = [...this.categories];
+    const draggedItem = newCategories.splice(this.draggedIndex, 1)[0];
+    newCategories.splice(index, 0, draggedItem);
+    this.categories = newCategories;
+    this.draggedIndex = index;
+  }
+
+  async drop(e: DragEvent) {
+    e.preventDefault();
+    await this.saveOrder();
+  }
+  
+  dragEnd() {
+    this.draggedIndex = null;
+  }
+
+  async saveOrder() {
+    this.isSavingOrder = true;
+    const updated = this.categories.map((c, index) => ({ ...c, order: index }));
+    await CategoryService.updateBatch(updated);
+    this.categories = updated;
+    this.isSavingOrder = false;
+  }
+
   render() {
     return html`
       <a href="/admin/dashboard" class="back-link">
@@ -189,9 +244,24 @@ export class AdminCategories extends LitElement {
 
       ${this.loading ? html`<p style="color: var(--text-secondary)">Carregando categorias...</p>` : html`
         <div class="list">
-          ${this.categories.map(cat => html`
-            <div class="category-item">
-              <span>${cat.name}</span>
+          ${this.isSavingOrder ? html`<p style="color: var(--primary-color); font-size: 0.9rem; text-align: center;">Salvando ordem...</p>` : ''}
+          ${this.categories.map((cat, index) => html`
+            <div 
+              class="category-item ${this.draggedIndex === index ? 'dragging' : ''}"
+              draggable="true"
+              @dragstart=${(e: DragEvent) => this.dragStart(e, index)}
+              @dragover=${(e: DragEvent) => this.dragOver(e, index)}
+              @drop=${this.drop}
+              @dragend=${this.dragEnd}
+            >
+              <div class="category-info">
+                <div class="drag-handle" title="Arraste para reordenar">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"></path>
+                  </svg>
+                </div>
+                <span>${cat.name}</span>
+              </div>
               <button class="delete-btn" @click=${() => this.handleDelete(cat.id!)}>Excluir</button>
             </div>
           `)}

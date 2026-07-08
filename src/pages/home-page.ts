@@ -207,12 +207,20 @@ export class HomePage extends LitElement {
       const matchesCategory = this.selectedCategoryId === '' || p.categoryId === this.selectedCategoryId;
       return matchesSearch && matchesCategory;
     });
+
+    // Ordenar produtos com base na ordem de exibição das suas categorias
+    const catOrder = new Map(this.categories.map((c, i) => [c.id, c.order ?? i]));
+    this.filteredProducts.sort((a, b) => {
+      const orderA = catOrder.get(a.categoryId) ?? 999;
+      const orderB = catOrder.get(b.categoryId) ?? 999;
+      return orderA - orderB;
+    });
   }
 
   render() {
     return html`
       <header>
-        <h1>Sabores & Sonhos</h1>
+        <h1>Sabor & Sonhos</h1>
       </header>
 
       <div class="search-bar">

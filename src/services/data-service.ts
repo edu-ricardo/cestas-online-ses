@@ -14,6 +14,7 @@ import { db } from "../config/firebase";
 export interface Category {
   id?: string;
   name: string;
+  order?: number;
 }
 
 const CATEGORIES_COLLECTION = "categories";
@@ -21,7 +22,8 @@ const CATEGORIES_COLLECTION = "categories";
 export const CategoryService = {
   async getAll(): Promise<Category[]> {
     const querySnapshot = await getDocs(collection(db, CATEGORIES_COLLECTION));
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+    const categories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+    return categories.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   },
 
   async create(category: Category): Promise<string> {
@@ -32,6 +34,12 @@ export const CategoryService = {
   async update(id: string, category: Partial<Category>): Promise<void> {
     const docRef = doc(db, CATEGORIES_COLLECTION, id);
     await updateDoc(docRef, category);
+  },
+
+  async updateBatch(categories: Category[]): Promise<void> {
+    // In a real production app, we would use a Firestore batch write here.
+    // For simplicity, we just use Promise.all to update all categories
+    await Promise.all(categories.map(cat => this.update(cat.id!, { order: cat.order })));
   },
 
   async delete(id: string): Promise<void> {
