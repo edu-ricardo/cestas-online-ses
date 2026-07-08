@@ -133,9 +133,15 @@ export class ProductDetails extends LitElement {
   handleBuy() {
     if (!this.product || !this.whatsappNumber) return;
 
+    let cleanPhone = this.whatsappNumber.replace(/\D/g, '');
+    // Se o número tiver 10 ou 11 dígitos (DDD + Número), adicionamos o 55 do Brasil
+    if (cleanPhone.length >= 10 && cleanPhone.length <= 11) {
+      cleanPhone = '55' + cleanPhone;
+    }
+
     const message = `Olá! Gostaria de encomendar o produto: *${this.product.title}* no valor de *R$ ${this.product.price.toFixed(2)}*.`;
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${this.whatsappNumber}?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
   }
