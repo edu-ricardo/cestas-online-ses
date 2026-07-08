@@ -110,7 +110,7 @@ export class ImageCarousel extends LitElement {
     }
   }
 
-  private scrollTo(index: number) {
+  private scrollToIndex(index: number) {
     const container = this.shadowRoot?.querySelector('.carousel-container') as HTMLElement;
     if (container) {
       container.scrollTo({
@@ -124,7 +124,7 @@ export class ImageCarousel extends LitElement {
     e.preventDefault();
     e.stopPropagation();
     if (this.activeIndex < this.images.length - 1) {
-      this.scrollTo(this.activeIndex + 1);
+      this.scrollToIndex(this.activeIndex + 1);
     }
   }
 
@@ -132,7 +132,7 @@ export class ImageCarousel extends LitElement {
     e.preventDefault();
     e.stopPropagation();
     if (this.activeIndex > 0) {
-      this.scrollTo(this.activeIndex - 1);
+      this.scrollToIndex(this.activeIndex - 1);
     }
   }
 

@@ -133,35 +133,35 @@ export class ProductDetails extends LitElement {
   handleBuy() {
     if (!this.product || !this.whatsappNumber) return;
 
-    const message = \`Olá! Gostaria de encomendar o produto: *\${this.product.title}* no valor de *R$ \${this.product.price.toFixed(2)}*.\`;
+    const message = `Olá! Gostaria de encomendar o produto: *${this.product.title}* no valor de *R$ ${this.product.price.toFixed(2)}*.`;
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = \`https://wa.me/\${this.whatsappNumber}?text=\${encodedMessage}\`;
+    const whatsappUrl = `https://wa.me/${this.whatsappNumber}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
   }
 
   render() {
-    if (this.loading) return html\`<p style="text-align: center; padding: 3rem; color: var(--text-secondary);">Carregando detalhes...</p>\`;
-    if (!this.product) return html\`<p style="text-align: center; padding: 3rem; color: var(--text-secondary);">Produto não encontrado.</p>\`;
+    if (this.loading) return html`<p style="text-align: center; padding: 3rem; color: var(--text-secondary);">Carregando detalhes...</p>`;
+    if (!this.product) return html`<p style="text-align: center; padding: 3rem; color: var(--text-secondary);">Produto não encontrado.</p>`;
 
     const productImages: ProductImage[] = this.product.images && this.product.images.length > 0 
       ? this.product.images 
       : (this.product.imageUrl ? [{ url: this.product.imageUrl, alt: this.product.title }] : []);
 
-    return html\`
+    return html`
       <a href="/" class="back-btn">
         <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         Voltar para o catálogo
       </a>
       
       <div class="image-container">
-        <image-carousel .images=\${productImages}></image-carousel>
+        <image-carousel .images=${productImages}></image-carousel>
       </div>
 
       <div class="content">
-        <h1 class="title">\${this.product.title}</h1>
-        <span class="price">R$ \${this.product.price.toFixed(2)}</span>
-        <div class="description">\${this.product.description}</div>
+        <h1 class="title">${this.product.title}</h1>
+        <span class="price">R$ ${this.product.price.toFixed(2)}</span>
+        <div class="description">${this.product.description}</div>
       </div>
 
       <div class="footer-action">
