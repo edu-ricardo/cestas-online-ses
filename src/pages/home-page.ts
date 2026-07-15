@@ -122,10 +122,10 @@ export class HomePage extends LitElement {
 
     .product-image {
       width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
+      height: 200px;
       background: var(--bg-main);
       border-bottom: 1px solid var(--border-color);
+      overflow: hidden;
     }
 
     .product-info {
@@ -257,7 +257,7 @@ export class HomePage extends LitElement {
             return html`
               <a href="/produto/${p.id}" class="product-card">
                 <div class="product-image">
-                  <image-carousel .images=${productImages}></image-carousel>
+                  <image-carousel .images=${productImages} fit="contain"></image-carousel>
                 </div>
                 <div class="product-info">
                   <p class="product-title">${p.title}</p>
