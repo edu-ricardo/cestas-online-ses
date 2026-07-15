@@ -161,7 +161,7 @@ export class ProductDetails extends LitElement {
       </a>
       
       <div class="image-container">
-        <image-carousel .images=${productImages}></image-carousel>
+        <image-carousel .images=${productImages} enableLightbox></image-carousel>
       </div>
 
       <div class="content">

@@ -6,6 +6,7 @@ import type { ProductImage } from '../services/data-service';
 export class ImageCarousel extends LitElement {
   @property({ type: Array }) images: ProductImage[] = [];
   @property({ type: String }) fit: 'cover' | 'contain' = 'cover';
+  @property({ type: Boolean }) enableLightbox = false;
   @state() private activeIndex = 0;
   @state() private isFullscreen = false;
 
@@ -209,13 +210,15 @@ export class ImageCarousel extends LitElement {
               src=${img.url} 
               alt=${img.alt || 'Imagem do Produto'} 
               loading="lazy" 
-              class="cursor-zoom"
+              class=${this.enableLightbox ? "cursor-zoom" : ""}
               style="object-fit: ${this.fit}"
               @click=${(e: Event) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.activeIndex = i;
-                this.isFullscreen = true;
+                if (this.enableLightbox) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  this.activeIndex = i;
+                  this.isFullscreen = true;
+                }
               }}
               onerror="this.src='https://via.placeholder.com/300x300?text=Erro'"
             />
