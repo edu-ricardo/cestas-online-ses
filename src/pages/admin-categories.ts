@@ -171,6 +171,23 @@ export class AdminCategories extends LitElement {
       display: flex;
       gap: 0.5rem;
     }
+    .copy-btn {
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      color: var(--primary-color);
+      border-color: var(--primary-color);
+      background: rgba(99, 102, 241, 0.05);
+    }
     .edit-btn {
       color: var(--primary-color);
       border: 1px solid var(--primary-color);
@@ -262,6 +279,16 @@ export class AdminCategories extends LitElement {
     this.isSpecialCatalog = !!cat.isSpecialCatalog;
     this.specialSlug = cat.specialSlug || '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async copyLink(slug: string) {
+    const url = `${window.location.origin}/${slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Link copiado com sucesso:\\n' + url);
+    } catch (err) {
+      alert('Não foi possível copiar o link automaticamente. Copie manualmente:\\n' + url);
+    }
   }
 
   async handleDelete(id: string) {
@@ -378,6 +405,13 @@ export class AdminCategories extends LitElement {
                 ${cat.isSpecialCatalog ? html`<span class="badge">Especial: /${cat.specialSlug}</span>` : ''}
               </div>
               <div class="item-actions">
+                ${cat.isSpecialCatalog ? html`
+                  <button class="copy-btn" @click=${() => this.copyLink(cat.specialSlug!)} title="Copiar Link">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                  </button>
+                ` : ''}
                 <button class="edit-btn" @click=${() => this.startEdit(cat)}>Editar</button>
                 <button class="delete-btn" @click=${() => this.handleDelete(cat.id!)}>Excluir</button>
               </div>
