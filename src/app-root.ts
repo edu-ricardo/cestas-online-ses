@@ -25,6 +25,7 @@ export class AppRoot extends LitElement {
     { path: '/admin/produtos', render: () => html`<admin-products></admin-products>` },
     { path: '/admin/configuracoes', render: () => html`<admin-settings></admin-settings>` },
     { path: '/produto/:id', render: (params) => html`<product-details .productId=${params.id}></product-details>` },
+    { path: '/:specialSlug', render: (params) => html`<home-page .specialSlug=${params.specialSlug}></home-page>` },
   ]);
 
   static styles = css`

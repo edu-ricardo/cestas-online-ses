@@ -1,16 +1,18 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { customElement, state, property } from 'lit/decorators.js';
 import { ProductService, CategoryService } from '../services/data-service';
 import type { Product, Category, ProductImage } from '../services/data-service';
 import '../components/image-carousel';
 
 @customElement('home-page')
 export class HomePage extends LitElement {
+  @property({ type: String }) specialSlug = '';
   @state() private products: Product[] = [];
   @state() private categories: Category[] = [];
   @state() private filteredProducts: Product[] = [];
   @state() private selectedCategoryId = '';
   @state() private searchQuery = '';
+  @state() private specialCategoryTitle = '';
   @state() private loading = true;
 
   static styles = css`
@@ -178,6 +180,12 @@ export class HomePage extends LitElement {
     await this.loadData();
   }
 
+  updated(changedProperties: Map<string, any>) {
+    if (changedProperties.has('specialSlug')) {
+      this.applyFilters();
+    }
+  }
+
   async loadData() {
     this.loading = true;
     const [prods, cats] = await Promise.all([
@@ -201,53 +209,76 @@ export class HomePage extends LitElement {
   }
 
   applyFilters() {
-    this.filteredProducts = this.products.filter(p => {
-      const matchesSearch = p.title.toLowerCase().includes(this.searchQuery) || 
-                            p.description.toLowerCase().includes(this.searchQuery);
-      const matchesCategory = this.selectedCategoryId === '' || p.categoryId === this.selectedCategoryId;
-      return matchesSearch && matchesCategory;
-    });
+    if (this.specialSlug) {
+      const specialCategory = this.categories.find(c => c.specialSlug === this.specialSlug);
+      if (specialCategory) {
+        this.specialCategoryTitle = specialCategory.name;
+        this.filteredProducts = this.products.filter(p => p.categoryId === specialCategory.id);
+      } else {
+        this.specialCategoryTitle = 'Catálogo Não Encontrado';
+        this.filteredProducts = [];
+      }
+    } else {
+      const specialCatIds = new Set(this.categories.filter(c => c.isSpecialCatalog).map(c => c.id));
 
-    // Ordenar produtos com base na ordem de exibição das suas categorias
-    const catOrder = new Map(this.categories.map((c, i) => [c.id, c.order ?? i]));
-    this.filteredProducts.sort((a, b) => {
-      const orderA = catOrder.get(a.categoryId) ?? 999;
-      const orderB = catOrder.get(b.categoryId) ?? 999;
-      return orderA - orderB;
-    });
+      this.filteredProducts = this.products.filter(p => {
+        if (specialCatIds.has(p.categoryId)) return false;
+        
+        const matchesSearch = p.title.toLowerCase().includes(this.searchQuery) || 
+                              p.description.toLowerCase().includes(this.searchQuery);
+        const matchesCategory = this.selectedCategoryId === '' || p.categoryId === this.selectedCategoryId;
+        return matchesSearch && matchesCategory;
+      });
+
+      // Ordenar produtos com base na ordem de exibição das suas categorias
+      const catOrder = new Map(this.categories.map((c, i) => [c.id, c.order ?? i]));
+      this.filteredProducts.sort((a, b) => {
+        const orderA = catOrder.get(a.categoryId) ?? 999;
+        const orderB = catOrder.get(b.categoryId) ?? 999;
+        return orderA - orderB;
+      });
+    }
   }
 
   render() {
     return html`
       <header>
-        <h1>Sabor & Sonhos</h1>
+        <h1>${this.specialSlug ? this.specialCategoryTitle : 'Sabor & Sonhos'}</h1>
       </header>
 
-      <div class="search-bar">
-        <input 
-          type="text" 
-          placeholder="Buscar produtos..." 
-          .value=${this.searchQuery}
-          @input=${this.handleSearch}
-        >
-      </div>
-
-      <div class="categories-scroll">
-        <div 
-          class="category-chip ${this.selectedCategoryId === '' ? 'active' : ''}"
-          @click=${() => this.selectCategory('')}
-        >
-          Todos
+      ${this.specialSlug ? html`
+        <div style="padding: 1rem; text-align: center;">
+          <a href="/" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
+            &larr; Voltar para a loja principal
+          </a>
         </div>
-        ${this.categories.map(cat => html`
-          <div 
-            class="category-chip ${this.selectedCategoryId === cat.id ? 'active' : ''}"
-            @click=${() => this.selectCategory(cat.id!)}
+      ` : html`
+        <div class="search-bar">
+          <input 
+            type="text" 
+            placeholder="Buscar produtos..." 
+            .value=${this.searchQuery}
+            @input=${this.handleSearch}
           >
-            ${cat.name}
+        </div>
+
+        <div class="categories-scroll">
+          <div 
+            class="category-chip ${this.selectedCategoryId === '' ? 'active' : ''}"
+            @click=${() => this.selectCategory('')}
+          >
+            Todos
           </div>
-        `)}
-      </div>
+          ${this.categories.filter(c => !c.isSpecialCatalog).map(cat => html`
+            <div 
+              class="category-chip ${this.selectedCategoryId === cat.id ? 'active' : ''}"
+              @click=${() => this.selectCategory(cat.id!)}
+            >
+              ${cat.name}
+            </div>
+          `)}
+        </div>
+      `}
 
       ${this.loading ? html`<p style="text-align: center; padding: 2rem; color: var(--text-secondary);">Carregando catálogo...</p>` : html`
         <div class="products-grid">

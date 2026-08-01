@@ -15,6 +15,8 @@ export interface Category {
   id?: string;
   name: string;
   order?: number;
+  isSpecialCatalog?: boolean;
+  specialSlug?: string;
 }
 
 const CATEGORIES_COLLECTION = "categories";

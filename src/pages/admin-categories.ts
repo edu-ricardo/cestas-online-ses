@@ -7,6 +7,9 @@ import type { Category } from '../services/data-service';
 export class AdminCategories extends LitElement {
   @state() private categories: Category[] = [];
   @state() private newCategoryName = '';
+  @state() private editingCategoryId: string | null = null;
+  @state() private isSpecialCatalog = false;
+  @state() private specialSlug = '';
   @state() private loading = true;
   @state() private draggedIndex: number | null = null;
   @state() private isSavingOrder = false;
@@ -44,10 +47,30 @@ export class AdminCategories extends LitElement {
       font-size: 1.25rem;
       margin-bottom: 1rem;
     }
-    .form { 
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .checkbox-group {
+      flex-direction: row;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      user-select: none;
+    }
+    .form-actions { 
       display: flex; 
       gap: 1rem; 
       align-items: center;
+      margin-top: 1rem;
     }
     input { 
       flex: 1;
@@ -80,6 +103,19 @@ export class AdminCategories extends LitElement {
       background: var(--primary-hover);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .btn-cancel {
+      background: var(--bg-main);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.85rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-cancel:hover {
+      background: var(--border-color);
     }
     .list {
       display: grid;
@@ -120,6 +156,34 @@ export class AdminCategories extends LitElement {
       font-weight: 500;
       color: var(--text-primary);
       font-size: 1.1rem;
+    }
+    .badge {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary-color);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .item-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .edit-btn {
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+      background: transparent;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .edit-btn:hover {
+      background: var(--primary-color);
+      color: white;
     }
     .delete-btn { 
       color: var(--danger-color); 
@@ -166,11 +230,38 @@ export class AdminCategories extends LitElement {
     this.loading = false;
   }
 
-  async handleAddCategory() {
+  async handleSaveCategory() {
     if (!this.newCategoryName.trim()) return;
-    await CategoryService.create({ name: this.newCategoryName });
-    this.newCategoryName = '';
+    
+    const categoryData: Partial<Category> = {
+      name: this.newCategoryName,
+      isSpecialCatalog: this.isSpecialCatalog,
+      specialSlug: this.isSpecialCatalog ? this.specialSlug : undefined
+    };
+
+    if (this.editingCategoryId) {
+      await CategoryService.update(this.editingCategoryId, categoryData);
+    } else {
+      await CategoryService.create(categoryData as Category);
+    }
+    
+    this.cancelEdit();
     await this.loadCategories();
+  }
+
+  cancelEdit() {
+    this.editingCategoryId = null;
+    this.newCategoryName = '';
+    this.isSpecialCatalog = false;
+    this.specialSlug = '';
+  }
+
+  startEdit(cat: Category) {
+    this.editingCategoryId = cat.id!;
+    this.newCategoryName = cat.name;
+    this.isSpecialCatalog = !!cat.isSpecialCatalog;
+    this.specialSlug = cat.specialSlug || '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async handleDelete(id: string) {
@@ -229,16 +320,39 @@ export class AdminCategories extends LitElement {
       </div>
       
       <div class="form-container">
-        <h3>Criar Nova Categoria</h3>
-        <div class="form">
+        <h3>${this.editingCategoryId ? 'Editar Categoria' : 'Criar Nova Categoria'}</h3>
+        <div class="form-group">
           <input 
             type="text" 
-            placeholder="Ex: Cestas de Dia dos Namorados" 
+            placeholder="Nome da categoria (Ex: Cestas de Dia dos Namorados)" 
             .value=${this.newCategoryName}
             @input=${(e: any) => this.newCategoryName = e.target.value}
-            @keyup=${(e: KeyboardEvent) => e.key === 'Enter' && this.handleAddCategory()}
+            @keyup=${(e: KeyboardEvent) => e.key === 'Enter' && this.handleSaveCategory()}
           >
-          <button class="btn-add" @click=${this.handleAddCategory}>+ Adicionar</button>
+        </div>
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" .checked=${this.isSpecialCatalog} @change=${(e: any) => this.isSpecialCatalog = e.target.checked}>
+            É um Catálogo Especial? (Oculta os produtos da página principal)
+          </label>
+        </div>
+        ${this.isSpecialCatalog ? html`
+          <div class="form-group">
+            <input 
+              type="text" 
+              placeholder="Link exclusivo (Ex: diadospais)" 
+              .value=${this.specialSlug}
+              @input=${(e: any) => this.specialSlug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')}
+            >
+          </div>
+        ` : ''}
+        <div class="form-actions">
+          <button class="btn-add" @click=${this.handleSaveCategory}>
+            ${this.editingCategoryId ? 'Salvar Alterações' : '+ Adicionar'}
+          </button>
+          ${this.editingCategoryId ? html`
+            <button class="btn-cancel" @click=${this.cancelEdit}>Cancelar</button>
+          ` : ''}
         </div>
       </div>
 
@@ -261,8 +375,12 @@ export class AdminCategories extends LitElement {
                   </svg>
                 </div>
                 <span>${cat.name}</span>
+                ${cat.isSpecialCatalog ? html`<span class="badge">Especial: /${cat.specialSlug}</span>` : ''}
               </div>
-              <button class="delete-btn" @click=${() => this.handleDelete(cat.id!)}>Excluir</button>
+              <div class="item-actions">
+                <button class="edit-btn" @click=${() => this.startEdit(cat)}>Editar</button>
+                <button class="delete-btn" @click=${() => this.handleDelete(cat.id!)}>Excluir</button>
+              </div>
             </div>
           `)}
         </div>
