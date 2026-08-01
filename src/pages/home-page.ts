@@ -13,6 +13,7 @@ export class HomePage extends LitElement {
   @state() private selectedCategoryId = '';
   @state() private searchQuery = '';
   @state() private specialCategoryTitle = '';
+  @state() private categoryDescription = '';
   @state() private loading = true;
 
   static styles = css`
@@ -82,14 +83,21 @@ export class HomePage extends LitElement {
       transition: all 0.2s;
     }
 
-    .category-chip:hover {
-      background: var(--border-color);
-    }
-
-    .category-chip.active {
+    .category-chip:hover, .category-chip.active {
       background: var(--primary-color);
       color: white;
       border-color: var(--primary-color);
+    }
+    
+    .category-description {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
     }
 
     .products-grid {
@@ -209,10 +217,13 @@ export class HomePage extends LitElement {
   }
 
   applyFilters() {
+    this.categoryDescription = '';
+    
     if (this.specialSlug) {
       const specialCategory = this.categories.find(c => c.specialSlug === this.specialSlug);
       if (specialCategory) {
         this.specialCategoryTitle = specialCategory.name;
+        this.categoryDescription = specialCategory.description || '';
         this.filteredProducts = this.products.filter(p => p.categoryId === specialCategory.id);
       } else {
         this.specialCategoryTitle = 'Catálogo Não Encontrado';
@@ -220,6 +231,13 @@ export class HomePage extends LitElement {
       }
     } else {
       const specialCatIds = new Set(this.categories.filter(c => c.isSpecialCatalog).map(c => c.id));
+      
+      if (this.selectedCategoryId) {
+        const cat = this.categories.find(c => c.id === this.selectedCategoryId);
+        if (cat) {
+          this.categoryDescription = cat.description || '';
+        }
+      }
 
       this.filteredProducts = this.products.filter(p => {
         if (specialCatIds.has(p.categoryId)) return false;
@@ -246,13 +264,11 @@ export class HomePage extends LitElement {
         <h1>${this.specialSlug ? this.specialCategoryTitle : 'Sabor & Sonhos'}</h1>
       </header>
 
-      ${this.specialSlug ? html`
-        <div style="padding: 1rem; text-align: center;">
-          <a href="/" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">
-            &larr; Voltar para a loja principal
-          </a>
-        </div>
-      ` : html`
+      ${this.categoryDescription ? html`
+        <p class="category-description">${this.categoryDescription}</p>
+      ` : ''}
+
+      ${this.specialSlug ? '' : html`
         <div class="search-bar">
           <input 
             type="text" 

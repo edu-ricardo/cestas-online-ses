@@ -7,6 +7,7 @@ import type { Category } from '../services/data-service';
 export class AdminCategories extends LitElement {
   @state() private categories: Category[] = [];
   @state() private newCategoryName = '';
+  @state() private categoryDescription = '';
   @state() private editingCategoryId: string | null = null;
   @state() private isSpecialCatalog = false;
   @state() private specialSlug = '';
@@ -72,7 +73,7 @@ export class AdminCategories extends LitElement {
       align-items: center;
       margin-top: 1rem;
     }
-    input { 
+    input, textarea { 
       flex: 1;
       padding: 0.85rem 1rem; 
       border: 1px solid var(--border-color); 
@@ -83,7 +84,11 @@ export class AdminCategories extends LitElement {
       font-size: 1rem;
       transition: border-color 0.2s;
     }
-    input:focus {
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    input:focus, textarea:focus {
       outline: none;
       border-color: var(--primary-color);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
@@ -252,6 +257,7 @@ export class AdminCategories extends LitElement {
     
     const categoryData: Partial<Category> = {
       name: this.newCategoryName,
+      description: this.categoryDescription.trim() || undefined,
       isSpecialCatalog: this.isSpecialCatalog,
       specialSlug: this.isSpecialCatalog ? this.specialSlug : undefined
     };
@@ -269,6 +275,7 @@ export class AdminCategories extends LitElement {
   cancelEdit() {
     this.editingCategoryId = null;
     this.newCategoryName = '';
+    this.categoryDescription = '';
     this.isSpecialCatalog = false;
     this.specialSlug = '';
   }
@@ -276,6 +283,7 @@ export class AdminCategories extends LitElement {
   startEdit(cat: Category) {
     this.editingCategoryId = cat.id!;
     this.newCategoryName = cat.name;
+    this.categoryDescription = cat.description || '';
     this.isSpecialCatalog = !!cat.isSpecialCatalog;
     this.specialSlug = cat.specialSlug || '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -354,8 +362,14 @@ export class AdminCategories extends LitElement {
             placeholder="Nome da categoria (Ex: Cestas de Dia dos Namorados)" 
             .value=${this.newCategoryName}
             @input=${(e: any) => this.newCategoryName = e.target.value}
-            @keyup=${(e: KeyboardEvent) => e.key === 'Enter' && this.handleSaveCategory()}
           >
+        </div>
+        <div class="form-group">
+          <textarea 
+            placeholder="Descrição da categoria (opcional)" 
+            .value=${this.categoryDescription}
+            @input=${(e: any) => this.categoryDescription = e.target.value}
+          ></textarea>
         </div>
         <div class="checkbox-group">
           <label>

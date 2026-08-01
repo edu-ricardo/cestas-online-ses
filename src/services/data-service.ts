@@ -14,6 +14,7 @@ import { db } from "../config/firebase";
 export interface Category {
   id?: string;
   name: string;
+  description?: string;
   order?: number;
   isSpecialCatalog?: boolean;
   specialSlug?: string;
