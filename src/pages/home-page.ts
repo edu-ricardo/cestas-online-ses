@@ -98,6 +98,7 @@ export class HomePage extends LitElement {
       margin-left: auto;
       margin-right: auto;
       line-height: 1.6;
+      white-space: pre-wrap;
     }
 
     .products-grid {
@@ -300,9 +301,10 @@ export class HomePage extends LitElement {
         <div class="products-grid">
           ${this.filteredProducts.map(p => {
             const productImages: ProductImage[] = p.images && p.images.length > 0 ? p.images : (p.imageUrl ? [{ url: p.imageUrl, alt: p.title }] : []);
+            const fromParam = this.specialSlug ? `?from=${this.specialSlug}` : '';
             
             return html`
-              <a href="/produto/${p.id}" class="product-card">
+              <a href="/produto/${p.id}${fromParam}" class="product-card">
                 <div class="product-image">
                   <image-carousel .images=${productImages} fit="contain"></image-carousel>
                 </div>

@@ -10,6 +10,7 @@ export class ProductDetails extends LitElement {
   @property({ type: String }) productId = '';
   @state() private product: Product | null = null;
   @state() private whatsappNumber = '';
+  @state() private fromSlug: string | null = null;
   @state() private loading = true;
 
   static styles = css`
@@ -115,6 +116,11 @@ export class ProductDetails extends LitElement {
 
   async connectedCallback() {
     super.connectedCallback();
+    
+    // Ler o parâmetro 'from' da URL para saber de onde o usuário veio
+    const urlParams = new URLSearchParams(window.location.search);
+    this.fromSlug = urlParams.get('from');
+    
     await this.loadData();
   }
 
@@ -154,8 +160,10 @@ export class ProductDetails extends LitElement {
       ? this.product.images 
       : (this.product.imageUrl ? [{ url: this.product.imageUrl, alt: this.product.title }] : []);
 
+    const backUrl = this.fromSlug ? `/${this.fromSlug}` : '/';
+
     return html`
-      <a href="/" class="back-btn">
+      <a href="${backUrl}" class="back-btn">
         <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         Voltar para o catálogo
       </a>
