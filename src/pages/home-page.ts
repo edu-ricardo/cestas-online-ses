@@ -43,7 +43,6 @@ export class HomePage extends LitElement {
     .search-bar {
       margin: 1rem;
       display: flex;
-      gap: 0.5rem;
     }
 
     .search-bar input {
@@ -64,7 +63,6 @@ export class HomePage extends LitElement {
     .categories-scroll {
       display: flex;
       overflow-x: auto;
-      gap: 0.5rem;
       padding: 0.5rem 1rem;
       scrollbar-width: none;
     }
@@ -73,6 +71,7 @@ export class HomePage extends LitElement {
     .category-chip {
       white-space: nowrap;
       padding: 0.5rem 1.2rem;
+      margin-right: 0.5rem;
       border-radius: 20px;
       background: var(--bg-surface);
       color: var(--text-primary);
@@ -81,6 +80,10 @@ export class HomePage extends LitElement {
       font-size: 0.9rem;
       font-weight: 500;
       transition: all 0.2s;
+    }
+
+    .category-chip:last-child {
+      margin-right: 0;
     }
 
     .category-chip:hover, .category-chip.active {

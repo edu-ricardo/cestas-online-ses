@@ -26,7 +26,6 @@ export class ProductDetails extends LitElement {
     .back-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
       padding: 1.5rem;
       color: var(--primary-color);
       text-decoration: none;
@@ -37,14 +36,29 @@ export class ProductDetails extends LitElement {
       width: 20px;
       height: 20px;
       fill: currentColor;
+      margin-right: 0.5rem;
     }
 
     .image-container {
       width: 100%;
-      aspect-ratio: 1;
+      position: relative;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-color);
       border-top: 1px solid var(--border-color);
+    }
+
+    .image-container::before {
+      content: "";
+      display: block;
+      padding-bottom: 100%; /* 1:1 Aspect Ratio fallback */
+    }
+
+    .image-container image-carousel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
 
     .content {
