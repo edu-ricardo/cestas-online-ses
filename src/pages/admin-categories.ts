@@ -10,6 +10,7 @@ export class AdminCategories extends LitElement {
   @state() private categoryDescription = '';
   @state() private editingCategoryId: string | null = null;
   @state() private isSpecialCatalog = false;
+  @state() private hideFromAll = false;
   @state() private specialSlug = '';
   @state() private loading = true;
   @state() private draggedIndex: number | null = null;
@@ -257,7 +258,8 @@ export class AdminCategories extends LitElement {
     
     const categoryData: Partial<Category> = {
       name: this.newCategoryName,
-      isSpecialCatalog: this.isSpecialCatalog
+      isSpecialCatalog: this.isSpecialCatalog,
+      hideFromAll: this.hideFromAll
     };
 
     if (this.categoryDescription.trim()) {
@@ -283,6 +285,7 @@ export class AdminCategories extends LitElement {
     this.newCategoryName = '';
     this.categoryDescription = '';
     this.isSpecialCatalog = false;
+    this.hideFromAll = false;
     this.specialSlug = '';
   }
 
@@ -291,6 +294,7 @@ export class AdminCategories extends LitElement {
     this.newCategoryName = cat.name;
     this.categoryDescription = cat.description || '';
     this.isSpecialCatalog = !!cat.isSpecialCatalog;
+    this.hideFromAll = !!cat.hideFromAll;
     this.specialSlug = cat.specialSlug || '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -380,8 +384,14 @@ export class AdminCategories extends LitElement {
         <div class="checkbox-group">
           <label>
             <input type="checkbox" .checked=${this.isSpecialCatalog} @change=${(e: any) => this.isSpecialCatalog = e.target.checked}>
-            É um Catálogo Especial? (Oculta os produtos da página principal)
+            É um Catálogo Especial? (Campanha separada da loja)
           </label>
+          ${!this.isSpecialCatalog ? html`
+            <label style="margin-top: 0.5rem; display: block;">
+              <input type="checkbox" .checked=${this.hideFromAll} @change=${(e: any) => this.hideFromAll = e.target.checked}>
+              Ocultar produtos desta categoria na aba "Todos"
+            </label>
+          ` : ''}
         </div>
         ${this.isSpecialCatalog ? html`
           <div class="form-group">

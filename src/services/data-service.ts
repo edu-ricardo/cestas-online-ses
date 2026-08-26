@@ -18,6 +18,7 @@ export interface Category {
   order?: number;
   isSpecialCatalog?: boolean;
   specialSlug?: string;
+  hideFromAll?: boolean;
 }
 
 const CATEGORIES_COLLECTION = "categories";

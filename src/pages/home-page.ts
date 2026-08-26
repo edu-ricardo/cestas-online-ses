@@ -258,9 +258,13 @@ export class HomePage extends LitElement {
         }
       }
 
+      const hiddenFromAllCatIds = new Set(this.categories.filter(c => c.hideFromAll).map(c => c.id));
+
       this.filteredProducts = this.products.filter(p => {
         if (specialCatIds.has(p.categoryId)) return false;
         
+        if (this.selectedCategoryId === '' && hiddenFromAllCatIds.has(p.categoryId)) return false;
+
         const matchesSearch = p.title.toLowerCase().includes(this.searchQuery) || 
                               p.description.toLowerCase().includes(this.searchQuery);
         const matchesCategory = this.selectedCategoryId === '' || p.categoryId === this.selectedCategoryId;
