@@ -257,10 +257,16 @@ export class AdminCategories extends LitElement {
     
     const categoryData: Partial<Category> = {
       name: this.newCategoryName,
-      description: this.categoryDescription.trim() || undefined,
-      isSpecialCatalog: this.isSpecialCatalog,
-      specialSlug: this.isSpecialCatalog ? this.specialSlug : undefined
+      isSpecialCatalog: this.isSpecialCatalog
     };
+
+    if (this.categoryDescription.trim()) {
+      categoryData.description = this.categoryDescription.trim();
+    }
+
+    if (this.isSpecialCatalog && this.specialSlug.trim()) {
+      categoryData.specialSlug = this.specialSlug.trim();
+    }
 
     if (this.editingCategoryId) {
       await CategoryService.update(this.editingCategoryId, categoryData);
