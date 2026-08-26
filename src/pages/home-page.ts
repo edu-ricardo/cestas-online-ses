@@ -12,6 +12,7 @@ export class HomePage extends LitElement {
   @state() private filteredProducts: Product[] = [];
   @state() private selectedCategoryId = '';
   @state() private searchQuery = '';
+  @state() private currentSort: 'default' | 'alpha' | 'price-asc' | 'price-desc' = 'default';
   @state() private specialCategoryTitle = '';
   @state() private categoryDescription = '';
   @state() private loading = true;
@@ -40,13 +41,16 @@ export class HomePage extends LitElement {
       color: var(--text-primary);
     }
 
-    .search-bar {
+    .filters-container {
       margin: 1rem;
       display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
-    .search-bar input {
+    .search-input {
       flex: 1;
+      min-width: 200px;
       padding: 0.8rem 1.2rem;
       border: 1px solid var(--border-color);
       background: var(--bg-surface);
@@ -56,8 +60,19 @@ export class HomePage extends LitElement {
       transition: border-color 0.2s, background-color 0.3s ease;
     }
 
-    .search-bar input:focus {
+    .search-input:focus {
       border-color: var(--primary-color);
+    }
+    
+    .sort-select {
+      padding: 0.8rem 1.2rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-radius: 25px;
+      outline: none;
+      cursor: pointer;
+      font-size: 0.95rem;
     }
 
     .categories-scroll {
@@ -251,8 +266,17 @@ export class HomePage extends LitElement {
         const matchesCategory = this.selectedCategoryId === '' || p.categoryId === this.selectedCategoryId;
         return matchesSearch && matchesCategory;
       });
+    }
 
-      // Ordenar produtos com base na ordem de exibição das suas categorias
+    // Aplicar Ordenação
+    if (this.currentSort === 'alpha') {
+      this.filteredProducts.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (this.currentSort === 'price-asc') {
+      this.filteredProducts.sort((a, b) => a.price - b.price);
+    } else if (this.currentSort === 'price-desc') {
+      this.filteredProducts.sort((a, b) => b.price - a.price);
+    } else {
+      // Ordenação Padrão (Por Categoria)
       const catOrder = new Map(this.categories.map((c, i) => [c.id, c.order ?? i]));
       this.filteredProducts.sort((a, b) => {
         const orderA = catOrder.get(a.categoryId) ?? 999;
@@ -272,16 +296,30 @@ export class HomePage extends LitElement {
         <p class="category-description">${this.categoryDescription}</p>
       ` : ''}
 
-      ${this.specialSlug ? '' : html`
-        <div class="search-bar">
+      <div class="filters-container">
+        ${this.specialSlug ? '' : html`
           <input 
+            class="search-input"
             type="text" 
             placeholder="Buscar produtos..." 
             .value=${this.searchQuery}
             @input=${this.handleSearch}
           >
-        </div>
+        `}
+        <select 
+          class="sort-select"
+          style="${this.specialSlug ? 'width: 100%; text-align: center;' : ''}"
+          .value=${this.currentSort}
+          @change=${(e: any) => { this.currentSort = e.target.value; this.applyFilters(); }}
+        >
+          <option value="default">Ordem Padrão</option>
+          <option value="alpha">Ordem Alfabética (A-Z)</option>
+          <option value="price-asc">Menor Preço</option>
+          <option value="price-desc">Maior Preço</option>
+        </select>
+      </div>
 
+      ${this.specialSlug ? '' : html`
         <div class="categories-scroll">
           <div 
             class="category-chip ${this.selectedCategoryId === '' ? 'active' : ''}"
